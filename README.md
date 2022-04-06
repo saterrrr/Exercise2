@@ -13,7 +13,7 @@ To add a user use the POST at /api/users/adduser with the parameters: username o
 to delete a user use the DELETE at /ap/users/{id} with the parameters: id of user you want to delete
 
 
-notes: 
+notes:  
 1.ID is the unique GUID  
 2.Make sure to change the connection too the database accordingly and the database name  
 3.I tested every functionality from the PDF and it worked, if something is missing I might have not concluded that from the instruction  
