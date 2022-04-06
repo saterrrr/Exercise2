@@ -15,7 +15,7 @@ to delete a user use the DELETE at /ap/users/{id} with the parameters: id of use
 
 notes:  
 1.ID is the unique GUID  
-2.Make sure to change the connection too the database accordingly and the database name  
+2.Make sure to change the connection too the database accordingly and the database name, i used sql server 2019 for the development
 3.I tested every functionality from the PDF and it worked, if something is missing I might have not concluded that from the instruction  
 4.Below is the SQL query used to create a database used during tests  
 
