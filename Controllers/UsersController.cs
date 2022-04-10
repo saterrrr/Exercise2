@@ -20,66 +20,60 @@ namespace Exercise.Controllers
         private readonly IConfiguration _configuration;
         private readonly IUserDbRepository _repository;
 
-        public UsersController(ExerciseContext context,IConfiguration configuration,IUserDbRepository repository)
+        public UsersController(ExerciseContext context, IConfiguration configuration, IUserDbRepository repository)
         {
             _context = context;
             _configuration = configuration;
             _repository = repository;
         }
 
-        // GET: api/Users
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
             return await _context.Users.ToListAsync();
         }
 
-        // GET: api/Users/5
-        [HttpGet("validateusername")]
-        public async Task<ActionResult> VerifyUsername(string username)
+
+        [HttpGet("{username}")]
+        public ActionResult VerifyUsername(string username)
         {
-            var result = await _repository.VerifyUserNameFromDbAsync(username);
-            if (result == 1)
+
+            if (UsernameExists(username))
             {
                 return BadRequest("User with this login already exists");
             }
-            
-            if (username == null)
+
+            if (!UsernameInputted(username))
             {
                 return BadRequest("No username specified!");
             }
-
-            if (username.Length>6 && username.Length<30 && Regex.IsMatch(username, "^[a-zA-Z0-9]*$"))
+            if (!UsernamePassRegex(username))
             {
-                return Ok("Username meets requirements");
+                return BadRequest("Username doesn't meet requirements");
             }
 
-            return BadRequest("Username doesn't meet requirements");
+            return Ok("Username meets requirements");
+
         }
 
-        // PUT: api/Users/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut]
+
+        [HttpPut("{id}")]
         public async Task<IActionResult> ModifyUser(Guid id, string username)
         {
             var user = await _context.Users.FindAsync(id);
-            if (user == null)
+            
+            if (!UserExists(id))
             {
                 return NotFound("User not found!");
             }
 
-            var result = await _repository.VerifyUserNameFromDbAsync(username);
-            if (result == 1)
-            {
-                return BadRequest("User with this login already exists");
-            }
-
-            if (username == null)
+            if (!UsernameInputted(username))
             {
                 return BadRequest("No username specified!");
             }
 
-            if (username.Length > 6 && username.Length < 30 && Regex.IsMatch(username, "^[a-zA-Z0-9]*$"))
+            if (UsernamePassRegex(username))
             {
                 user.UserName = username;
                 
@@ -105,42 +99,31 @@ namespace Exercise.Controllers
             }
 
             return BadRequest("Username doesn't meet requirements");
-
-            
-
-            return NoContent();
+           
         }
 
-        // POST: api/Users
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost("adduser")]
+        
+        [HttpPost("{username}")]
         public async Task<ActionResult<User>> AddUser(string username)
         {
-
-            //verifying the username TODO create a function for that
-
-            var result = await _repository.VerifyUserNameFromDbAsync(username);
-            if (result == 1)
+            if (UsernameExists(username))
             {
-                return BadRequest("User with this login already exists");
+                return NotFound("User with this login already exists!");
             }
 
-            if (username == null)
+            if (!UsernameInputted(username))
             {
                 return BadRequest("No username specified!");
             }
 
-            if (username.Length > 6 && username.Length < 30 && Regex.IsMatch(username, "^[a-zA-Z0-9]*$"))
+            if (UsernamePassRegex(username))
             {
-
-                //adding verified username to the database
                 User newuser = new User();
-                newuser.UserName = username;  
+                newuser.UserName = username;
                 _context.Users.Add(newuser);
                 await _context.SaveChangesAsync();
 
                 return Ok(username + " Added!");
-
             }
 
             return BadRequest("Username doesn't meet requirements");
@@ -148,12 +131,12 @@ namespace Exercise.Controllers
             
         }
 
-        // DELETE: api/Users/5
+        
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(Guid id)
         {
             var user = await _context.Users.FindAsync(id);
-            if (user == null)
+            if (!UserExists(id))
             {
                 return NotFound("User not found!");
             }
@@ -168,5 +151,36 @@ namespace Exercise.Controllers
         {
             return _context.Users.Any(e => e.Id == id);
         }
+
+        private bool UsernameExists(string username)
+        {
+            return _context.Users.Any(e => e.UserName == username);
+        }
+
+        private bool UsernameInputted(string username)
+        {
+            if (username == null)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        private bool UsernamePassRegex(string username)
+        {
+            if (username.Length > 6 && username.Length < 30 && Regex.IsMatch(username, "^[a-zA-Z0-9]*$"))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+
     }
+
+
 }
+
+    
+
