@@ -8,9 +8,9 @@ To verify a username use the GET at /api/Users/{username} with the parameters: u
 
 To modify a user use the PUT at /api/Users/{username} with the parameters: username you want to modify and the newusername (has to pass validation)    
 
-To add a user use the POST at /api/users/{username} with the parameters: username of the new user (has to pass validation)  
+To add a user use the POST at /api/Users/{username} with the parameters: username of the new user (has to pass validation)  
 
-to delete a user use the DELETE at /ap/users/{username} with the parameters: username you want to delete (has to exist)
+to delete a user use the DELETE at /api/Users/{username} with the parameters: username you want to delete (has to exist)
 
 
 notes:  
