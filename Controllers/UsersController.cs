@@ -29,152 +29,67 @@ namespace Exercise.Controllers
 
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        public async Task<IActionResult> GetUsers()
         {
-            return await _context.Users.ToListAsync();
-        }
+            var getUser = await _repository.GetUsers();
+            return Ok(getUser);
+            }
 
 
         [HttpGet("{username}")]
-        public ActionResult VerifyUsername(string username)
+        public async Task<IActionResult> VerifyUsername(string username)
         {
-
-            if (UsernameExists(username))
+            var verification = await _repository.VerifyUsername(username);
+            if(!verification)
             {
-                return BadRequest("User with this login already exists");
+                return BadRequest("Username doesn't meet requirements or is already taken!");
             }
 
-            if (!UsernameInputted(username))
-            {
-                return BadRequest("No username specified!");
-            }
-            if (!UsernamePassRegex(username))
-            {
-                return BadRequest("Username doesn't meet requirements");
-            }
-
-            return Ok("Username meets requirements");
+            return Ok("Username meets requirements!");
 
         }
 
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> ModifyUser(Guid id, string username)
+        [HttpPut("{username}")]
+        public async Task<IActionResult> ModifyUser(string username, string newusername)
         {
-            var user = await _context.Users.FindAsync(id);
-            
-            if (!UserExists(id))
+           
+            var feedback = await _repository.ModifyUser(username, newusername);
+            if(!feedback)
             {
-                return NotFound("User not found!");
+                return BadRequest("Username doesn't meet requirements!"); 
             }
-
-            if (!UsernameInputted(username))
-            {
-                return BadRequest("No username specified!");
-            }
-
-            if (UsernamePassRegex(username))
-            {
-                user.UserName = username;
-                
-                _context.Entry(user).State = EntityState.Modified;
-
-                try
-                {
-                    await _context.SaveChangesAsync();
-                    return Ok("Username changed to " + username);
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!UserExists(id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-
-            }
-
-            return BadRequest("Username doesn't meet requirements");
+            return Ok("Username updated to " + newusername+"!");
            
         }
 
         
         [HttpPost("{username}")]
-        public async Task<ActionResult<User>> AddUser(string username)
+        public async Task<IActionResult> AddUser(string username)
         {
-            if (UsernameExists(username))
+            var addUser = await _repository.AddUser(username);
+            if (!addUser)
             {
-                return NotFound("User with this login already exists!");
+                return BadRequest("Username doesn't meet requirements or is already taken!");
             }
+            return Ok("User " + username + " added!");
 
-            if (!UsernameInputted(username))
-            {
-                return BadRequest("No username specified!");
-            }
 
-            if (UsernamePassRegex(username))
-            {
-                User newuser = new User();
-                newuser.UserName = username;
-                _context.Users.Add(newuser);
-                await _context.SaveChangesAsync();
-
-                return Ok(username + " Added!");
-            }
-
-            return BadRequest("Username doesn't meet requirements");
-
-            
         }
 
         
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(Guid id)
+        [HttpDelete("{username}")]
+        public async Task<IActionResult> DeleteUser(string username)
         {
-            var user = await _context.Users.FindAsync(id);
-            if (!UserExists(id))
+            var deleteUser = await _repository.DeleteUser(username);
+            if (!deleteUser)
             {
-                return NotFound("User not found!");
+                return BadRequest("User doesn't exist!");
             }
-
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            return Ok("User deleted!");
         }
 
-        private bool UserExists(Guid id)
-        {
-            return _context.Users.Any(e => e.Id == id);
-        }
-
-        private bool UsernameExists(string username)
-        {
-            return _context.Users.Any(e => e.UserName == username);
-        }
-
-        private bool UsernameInputted(string username)
-        {
-            if (username == null)
-            {
-                return false;
-            }
-            return true;
-        }
-
-        private bool UsernamePassRegex(string username)
-        {
-            if (username.Length > 6 && username.Length < 30 && Regex.IsMatch(username, "^[a-zA-Z0-9]*$"))
-            {
-                return true;
-            }
-
-            return false;
-        }
+        
 
 
     }
